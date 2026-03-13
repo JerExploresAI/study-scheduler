@@ -74,11 +74,17 @@
     font-size: 1.25rem;
     font-weight: 700;
     color: #2563EB;
+    position: relative;
+    z-index: 2;
   }
 
   .nav-pills {
     display: flex;
     gap: 8px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
   }
 
   .nav-pill {
@@ -95,6 +101,14 @@
 
   .nav-pill:hover {
     background: var(--pill-hover);
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    z-index: 2;
   }
 
   .theme-toggle {
@@ -368,14 +382,17 @@
       display: none;
       position: absolute;
       top: 100%;
-      left: 0;
       right: 0;
+      left: auto;
+      transform: none;
       flex-direction: column;
       background: var(--nav-bg);
-      border-bottom: 1px solid var(--border);
+      border: 1px solid var(--border);
+      border-radius: 8px;
       padding: 8px 16px;
       gap: 4px;
       z-index: 49;
+      min-width: 180px;
     }
     .nav-pills.open { display: flex; }
 
@@ -447,13 +464,15 @@
 
 <nav>
   <div class="nav-brand">StudyScheduler</div>
-  <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu">☰</button>
   <div class="nav-pills" id="navPills">
     <span class="nav-pill">My Calendar</span>
     <span class="nav-pill">My Files</span>
     <span class="nav-pill">Settings</span>
   </div>
-  <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">☀️</button>
+  <div class="nav-right">
+    <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu">☰</button>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">☀️</button>
+  </div>
 </nav>
 
 <main>
