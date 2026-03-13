@@ -372,11 +372,15 @@
   }
   .hamburger:hover { background: var(--toggle-hover); }
 
+  .mobile-theme-toggle { display: none; }
+
   /* RESPONSIVE */
   @media (max-width: 768px) {
     nav { padding: 12px 16px; gap: 8px; }
 
     .hamburger { display: flex; }
+    .theme-toggle { display: none; }
+    .mobile-theme-toggle { display: flex; }
 
     .nav-pills {
       display: none;
@@ -468,6 +472,7 @@
     <span class="nav-pill">My Calendar</span>
     <span class="nav-pill">My Files</span>
     <span class="nav-pill">Settings</span>
+    <button class="nav-pill mobile-theme-toggle" id="mobileThemeToggle" aria-label="Toggle dark mode">☀️</button>
   </div>
   <div class="nav-right">
     <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu">☰</button>
@@ -703,16 +708,22 @@ document.addEventListener("keydown", (e) => {
 
 // Theme toggle
 const toggle = document.getElementById("themeToggle");
+const mobileToggle = document.getElementById("mobileThemeToggle");
 function setTheme(dark) {
   document.documentElement.setAttribute("data-theme", dark ? "dark" : "");
-  toggle.textContent = dark ? "🌙" : "☀️";
+  const icon = dark ? "🌙" : "☀️";
+  toggle.textContent = icon;
+  mobileToggle.textContent = icon;
   localStorage.setItem("theme", dark ? "dark" : "light");
 }
 
-toggle.addEventListener("click", () => {
+function handleThemeToggle() {
   const isDark = document.documentElement.getAttribute("data-theme") === "dark";
   setTheme(!isDark);
-});
+}
+
+toggle.addEventListener("click", handleThemeToggle);
+mobileToggle.addEventListener("click", handleThemeToggle);
 
 // Hamburger menu
 document.getElementById("hamburgerBtn").addEventListener("click", () => {
