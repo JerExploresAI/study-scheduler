@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudyScheduler</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F8F9FA;
+    --surface: #FFFFFF;
+    --text: #1A1A1A;
+    --text-secondary: #6B7280;
+    --border: #E5E7EB;
+    --shadow: rgba(0,0,0,0.08);
+    --overlay: rgba(0,0,0,0.5);
+    --nav-bg: #FFFFFF;
+    --pill-bg: #F3F4F6;
+    --pill-text: #374151;
+    --pill-hover: #E5E7EB;
+    --tile-bg: #FFFFFF;
+    --tile-hover: #F9FAFB;
+    --popup-bg: #FFFFFF;
+    --toggle-bg: #F3F4F6;
+    --toggle-hover: #E5E7EB;
+  }
+
+  [data-theme="dark"] {
+    --bg: #0D0D0D;
+    --surface: #1A1A1A;
+    --text: #F1F1F1;
+    --text-secondary: #9CA3AF;
+    --border: #2D2D2D;
+    --shadow: rgba(0,0,0,0.3);
+    --overlay: rgba(0,0,0,0.7);
+    --nav-bg: #141414;
+    --pill-bg: #252525;
+    --pill-text: #D1D5DB;
+    --pill-hover: #333333;
+    --tile-bg: #1A1A1A;
+    --tile-hover: #222222;
+    --popup-bg: #1A1A1A;
+    --toggle-bg: #252525;
+    --toggle-hover: #333333;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  /* NAV */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 32px;
+    background: var(--nav-bg);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    transition: background 0.3s, border-color 0.3s;
+  }
+
+  .nav-brand {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #2563EB;
+  }
+
+  .nav-pills {
+    display: flex;
+    gap: 8px;
+  }
+
+  .nav-pill {
+    padding: 8px 20px;
+    border-radius: 9999px;
+    background: var(--pill-bg);
+    color: var(--pill-text);
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: none;
+    cursor: default;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .nav-pill:hover {
+    background: var(--pill-hover);
+  }
+
+  .theme-toggle {
+    width: 40px;
+    height: 40px;
+    border-radius: 9999px;
+    background: var(--toggle-bg);
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+
+  .theme-toggle:hover {
+    background: var(--toggle-hover);
+  }
+
+  /* MAIN */
+  main {
+    flex: 1;
+    max-width: 960px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+
+  .calendar-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .calendar-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .calendar-header p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+  }
+
+  /* GRID */
+  .day-labels {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .day-label {
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+  }
+
+  .tile {
+    background: var(--tile-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 12px;
+    min-height: 110px;
+    cursor: pointer;
+    box-shadow: 0 1px 3px var(--shadow);
+    transition: transform 0.15s, box-shadow 0.15s, background 0.3s, border-color 0.3s;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .tile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow);
+    background: var(--tile-hover);
+  }
+
+  .tile-empty {
+    visibility: hidden;
+  }
+
+  .tile-date {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .tile-day {
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  .tile-title {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    line-height: 1.3;
+    margin-top: auto;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .day-study { color: #16A34A; }
+  .day-quiz { color: #DC2626; }
+
+  /* MODAL OVERLAY */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+
+  .modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .modal {
+    background: var(--popup-bg);
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 560px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+    transform: scale(0.95) translateY(10px);
+    transition: transform 0.25s, background 0.3s;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+
+  .modal-overlay.active .modal {
+    transform: scale(1) translateY(0);
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: var(--pill-bg);
+    color: var(--text);
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .modal-close:hover {
+    background: var(--pill-hover);
+  }
+
+  .modal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    padding-right: 40px;
+    line-height: 1.4;
+  }
+
+  .modal-section-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+
+  .modal-topics {
+    list-style: disc;
+    padding-left: 20px;
+    margin-bottom: 24px;
+  }
+
+  .modal-topics li {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  .modal-files {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .file-bubble {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 9999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+
+  .file-bubble:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--shadow);
+  }
+
+  .file-bubble.study {
+    background: #2563EB;
+    color: #FFFFFF;
+  }
+
+  .file-bubble.quiz {
+    background: #EA580C;
+    color: #FFFFFF;
+  }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border);
+    transition: border-color 0.3s, color 0.3s;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">StudyScheduler</div>
+  <div class="nav-pills">
+    <span class="nav-pill">My Calendar</span>
+    <span class="nav-pill">My Files</span>
+    <span class="nav-pill">Settings</span>
+  </div>
+  <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">☀️</button>
+</nav>
+
+<main>
+  <div class="calendar-header">
+    <h1>CAMRT Exam Study Plan</h1>
+    <p>April 27 – May 10, 2026 &middot; 14 Days</p>
+  </div>
+
+  <div class="day-labels">
+    <div class="day-label">Mon</div>
+    <div class="day-label">Tue</div>
+    <div class="day-label">Wed</div>
+    <div class="day-label">Thu</div>
+    <div class="day-label">Fri</div>
+    <div class="day-label">Sat</div>
+    <div class="day-label">Sun</div>
+  </div>
+
+  <div class="calendar-grid" id="calendarGrid"></div>
+</main>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <button class="modal-close" id="modalClose">&times;</button>
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-section-label">Topics</div>
+    <ul class="modal-topics" id="modalTopics"></ul>
+    <div class="modal-section-label">Files</div>
+    <div class="modal-files" id="modalFiles"></div>
+  </div>
+</div>
+
+<footer>&copy; 2026 StudyScheduler. All rights reserved. Built by Atlas - Jer's AI</footer>
+
+<script>
+const scheduleData = {
+  1: {
+    date: "2026-04-27", type: "study",
+    title: "Foundations: Radiobiology, Physics & Safety",
+    topics: ["Radiobiology fundamentals: cell survival curves, 4 Rs, fractionation", "Radiation physics: photon interactions, dose, units, linac principles", "Radiation safety: ALARA, dose limits, shielding, personal monitoring", "Professional role: CAMRT code of ethics, informed consent", "Cross-sectional anatomy overview"],
+    files: [
+      { name: "User Notes", url: "https://drive.google.com/file/d/11tvpqr1zT3v-lwprkraB5EyI75dHNdbc/view" },
+      { name: "AI Notes", url: "https://drive.google.com/file/d/1DZCVB1XXUwF4jZa5_QrfF5Lc6dLYB-Ao/view" },
+      { name: "Quiz", url: "https://drive.google.com/file/d/1_zlJD4cdpWnGMzTIiwf4Xj9FM89Yhbqm/view" }
+    ]
+  },
+  2: {
+    date: "2026-04-28", type: "study",
+    title: "Breast Cancer + Treatment Planning & Delivery",
+    topics: ["Breast cancer: epidemiology, anatomy, staging (TNM)", "Breast RT techniques: tangential fields, PMRT, boost, hypofractionation", "Dose constraints: heart, lung, contralateral breast", "Treatment planning: target volumes, beam arrangement", "Treatment delivery: image guidance, setup verification"],
+    files: [
+      { name: "User Notes", url: "https://drive.google.com/file/d/1b3QRQeuGoq1q_5fvaEq63NF_ffagAHBV/view" },
+      { name: "AI Notes", url: "https://drive.google.com/file/d/1Xn9ixAaqXiIyZwYqLI3VzQcFlT4XiCRY/view" },
+      { name: "Quiz", url: "https://drive.google.com/file/d/1aOCAEBSVOTLbif4vM3QIIqb5rwl0_api/view" }
+    ]
+  },
+  3: {
+    date: "2026-04-29", type: "study",
+    title: "Head & Neck Part 1: Oral Cavity, Nasopharynx, Nasal Cavity & Salivary Glands",
+    topics: ["H&N anatomy: lymph node levels I-VII", "Oral cavity cancers: floor of mouth, tongue, lip, buccal mucosa", "Nasopharyngeal carcinoma: EBV, staging, IMRT", "Nasal cavity & paranasal sinus: anatomy, treatment", "Salivary gland tumors: parotid, submandibular", "IMRT principles: GTV/CTV/PTV, OAR constraints"],
+    files: [
+      { name: "User Notes", url: "https://drive.google.com/file/d/1IFYdKrIAPwhxZR1sQeB11iycMRSfFdUk/view" },
+      { name: "AI Notes", url: "https://drive.google.com/file/d/1qDqieeAvO8EHG8M8Ik8oHq0wGLfOCzB2/view" },
+      { name: "Quiz", url: "https://drive.google.com/file/d/1ybW2wOdsaWYIs-LEo91eplGdgMPDbF5h/view" }
+    ]
+  },
+  4: {
+    date: "2026-04-30", type: "study",
+    title: "Head & Neck Part 2: Larynx, Oropharynx, Hypopharynx + Palliative RT",
+    topics: ["Laryngeal cancer: glottic vs supraglottic, organ preservation", "Oropharyngeal cancer: HPV+, tonsil, BOT, IMRT", "Hypopharyngeal cancer: piriform sinus, staging", "Palliative RT: 8Gy×1, 20Gy×5, 30Gy×10 regimens", "Oncologic emergencies: SCC, SVCO, brain metastases", "Bone metastases: single vs multi-fraction RT"],
+    files: [
+      { name: "User Notes", url: "https://drive.google.com/file/d/1Q_17ifhUwtpdMxd3Tcvb9Jz_elfwYqFS/view" },
+      { name: "AI Notes", url: "https://drive.google.com/file/d/1Y4WhUTcWc58Twdys5nLinu3HjsmqMnjo/view" },
+      { name: "Quiz", url: "https://drive.google.com/file/d/1_NpoNWY9ZYVRVEnffVUHWHiEc23Y-30G/view" }
+    ]
+  },
+  5: {
+    date: "2026-05-01", type: "study",
+    title: "GI Cancers: Colorectal, Anal Canal, Esophagus + Equipment & Simulation",
+    topics: ["Colorectal cancer: staging, neoadjuvant RT, short vs long course CRT", "Anal canal cancer: Nigro protocol (5-FU/MMC + RT), sphincter preservation", "Esophageal cancer: SCC vs adenocarcinoma, definitive vs neoadjuvant CRT", "Linear accelerator components and treatment equipment", "CT simulation: patient positioning, immobilization, landmark marking"],
+    files: [
+      { name: "User Notes", url: "https://drive.google.com/file/d/1ZIHO5fIet-4KdC_-Ar4tzX9UQoRQpV2s/view" },
+      { name: "AI Notes", url: "https://drive.google.com/file/d/10e03DZzrXBYf8Sq-VI_bThYxE-0R63-C/view" },
+      { name: "Quiz", url: "https://drive.google.com/file/d/1WW2Mm_Jsqgl-aWKKnasrjUoIvmUBje6E/view" }
+    ]
+  },
+  6: {
+    date: "2026-05-02", type: "large_quiz",
+    title: "Large Quiz 1 — Week 1 Review",
+    topics: ["Covers Days 1–5: Radiobiology, Physics, Safety, Breast, H&N, GI, Equipment", "100 questions, CAMRT exam style", "80% application/critical thinking"],
+    files: [{ name: "Week 1 Large Quiz", url: "https://drive.google.com/file/d/1YIveT2cuKSpCCmuX8dJlEOQGzZt_V-4d/view" }]
+  },
+  7: {
+    date: "2026-05-03", type: "large_quiz",
+    title: "Large Quiz 2 — Week 1 Review (Set 2)",
+    topics: ["Covers Days 1–5: different question set from Day 6", "100 questions, focus on missed concepts", "Includes long-answer clinical scenarios"],
+    files: [{ name: "Week 1 Large Quiz 2", url: "https://drive.google.com/file/d/1EumCF86JMqenxT9oRPUwRSmGmuNvylL3/view" }]
+  },
+  8: {
+    date: "2026-05-04", type: "study",
+    title: "GI Part 2: Stomach, Pancreas, Liver, Kidney + Prostate Cancer",
+    topics: ["Stomach cancer: H.pylori, staging, adjuvant RT, MacDonald protocol", "Pancreatic cancer: SBRT, locally advanced, Whipple procedure", "Liver/HCC: SBRT, TACE, dose constraints", "Prostate cancer: risk stratification, EBRT, HDR/LDR brachytherapy", "Prostate SBRT and dose constraints"],
+    files: [
+      { name: "User Notes", url: "https://drive.google.com/file/d/1EU4C6UeUz12WGWXv7Yz_nDRvPHauDMih/view" },
+      { name: "AI Notes", url: "https://drive.google.com/file/d/1cGtMjWileOLNMYyDx78GrVfO0udJ1oJw/view" },
+      { name: "Quiz", url: "https://drive.google.com/file/d/1saMIkGKVtMrDEoIAcN2Ysm2kxXN64avr/view" }
+    ]
+  },
+  9: {
+    date: "2026-05-05", type: "study",
+    title: "GU: Bladder, Testicular, Penile + Gyne: Cervix & Endometrial",
+    topics: ["Bladder cancer: staging, bladder preservation protocol, whole pelvis RT", "Testicular cancer: seminoma vs NSGT, para-aortic RT", "Penile cancer: staging, RT technique", "Cervical cancer: FIGO staging, EBRT + intracavitary brachytherapy, Point A/B", "Endometrial cancer: risk stratification, vaginal cuff brachytherapy vs EBRT"],
+    files: [
+      { name: "User Notes", url: "https://drive.google.com/file/d/16YMK-ybpLocdM9mkcOJrEDW3Sugo-DVb/view" },
+      { name: "AI Notes", url: "https://drive.google.com/file/d/1UYBnnFYAO5d0u6QFwzfHHvgcPfd5RJcy/view" },
+      { name: "Quiz", url: "https://drive.google.com/file/d/1nP6GaRHnaGJtStZN7VzZWXILLd5bgFiB/view" }
+    ]
+  },
+  10: {
+    date: "2026-05-06", type: "study",
+    title: "Gyne: Ovarian, Vaginal, Vulva + Lung + CNS",
+    topics: ["Ovarian cancer: FIGO staging, carboplatin/paclitaxel, limited RT role", "Vaginal & vulvar cancer: staging, IMRT, inguinal nodal management", "Lung cancer: NSCLC vs SCLC, SBRT, concurrent CRT, dose constraints", "CNS tumors: GBM Stupp protocol, meningioma, brain mets SRS vs WBRT", "Respiratory motion management: 4DCT, gating, DIBH"],
+    files: [
+      { name: "User Notes", url: "https://drive.google.com/file/d/1rsWKjr0_Gt4g_CAIGfyVA6Y5UFpjU84Y/view" },
+      { name: "AI Notes", url: "https://drive.google.com/file/d/1alYBXVOsKAw2UiDs1tBiT68r1kThohuE/view" },
+      { name: "Quiz", url: "https://drive.google.com/file/d/1KmRF_fkozZXm7TnrezLkgBwLmSuAKjJg/view" }
+    ]
+  },
+  11: {
+    date: "2026-05-07", type: "study",
+    title: "Low Priority Sites: Lymphoma, Leukemia, Sarcoma, Skin, Endocrine, Pediatrics",
+    topics: ["Hodgkin lymphoma: Ann Arbor staging, ISRT, mantle fields", "Leukemia: TBI technique, fractionation, bone marrow transplant conditioning", "Soft tissue sarcomas: pre- vs post-op RT, dose, electron beam", "Skin cancers: BCC, SCC, melanoma — superficial RT", "Pediatric oncology: Wilms, medulloblastoma, retinoblastoma, CSI"],
+    files: [
+      { name: "User Notes", url: "https://drive.google.com/file/d/1OLKExsMN5nDwp7XgbKSQrfUe76rrNUo0/view" },
+      { name: "AI Notes", url: "https://drive.google.com/file/d/1RattDaR9YZOdMZjTgGNGHiLC7kmMAMU3/view" },
+      { name: "Quiz", url: "https://drive.google.com/file/d/1mwHQ9M-TTFfCoEDjGLo0jYbhZC636dKZ/view" }
+    ]
+  },
+  12: {
+    date: "2026-05-08", type: "study",
+    title: "Professional Practice, QA, Dose Calculations & Brachytherapy",
+    topics: ["Professional roles: CAMRT ethics, consent, scope of practice, PHIPA", "Quality assurance: linac QA (TG-51, TG-40), IGRT, IMRT QA gamma analysis", "Manual dose calculations: MU, TMR, ISF, BED, HVL/TVL", "Brachytherapy: LDR vs HDR, isotopes (I-125, Ir-192, Cs-137), Point A/B, TG-43"],
+    files: [
+      { name: "User Notes", url: "https://drive.google.com/file/d/1iIyZyaZNOsswup-UBUH9xg-tYC71h9LD/view" },
+      { name: "AI Notes", url: "https://drive.google.com/file/d/1MQMN01_LSRcDlesnuS_549Lk4Mc8A6J5/view" },
+      { name: "Quiz", url: "https://drive.google.com/file/d/1FfoezbeS3VqgKH25AsxXd8-ec8b0FG2f/view" }
+    ]
+  },
+  13: {
+    date: "2026-05-09", type: "large_quiz",
+    title: "Large Quiz 3 — Week 2 Review",
+    topics: ["Covers Days 8–12: GI, Prostate, GU, Gyne, Lung, CNS, Low Priority, QA, Calculations", "100 questions, CAMRT exam style", "80% application/critical thinking"],
+    files: [{ name: "Week 2 Large Quiz", url: "https://drive.google.com/file/d/1qx6LklhkzdO5yIo392UCzkpnjlErdugI/view" }]
+  },
+  14: {
+    date: "2026-05-10", type: "large_quiz",
+    title: "Comprehensive Final Exam — All 14 Days",
+    topics: ["Covers ALL content from Days 1–12", "185 questions matching actual CAMRT exam length", "80% application/critical thinking, 4-hour timed practice"],
+    files: [{ name: "Comprehensive Final Quiz", url: "https://drive.google.com/file/d/1kJnLTPDaL6gkotIkhD3CtKFf8ScO4L9J/view" }]
+  }
+};
+
+// Grid layout: 2 rows of 7 (Mon-Sun), days 1-7 then 8-14
+const gridSlots = [
+  1, 2, 3, 4, 5, 6, 7,
+  8, 9, 10, 11, 12, 13, 14
+];
+
+const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr + "T00:00:00");
+  return `${monthNames[d.getMonth()]} ${d.getDate()}`;
+}
+
+function buildCalendar() {
+  const grid = document.getElementById("calendarGrid");
+  gridSlots.forEach(dayNum => {
+    const data = scheduleData[dayNum];
+    const tile = document.createElement("div");
+    tile.className = "tile";
+
+    const isQuiz = data.type === "large_quiz";
+    const dayClass = isQuiz ? "day-quiz" : "day-study";
+
+    tile.innerHTML = `
+      <div class="tile-date">${formatDate(data.date)}</div>
+      <div class="tile-day ${dayClass}">Day ${dayNum}</div>
+      <div class="tile-title">${data.title}</div>
+    `;
+
+    tile.addEventListener("click", () => openModal(dayNum));
+    grid.appendChild(tile);
+  });
+}
+
+// Modal
+const overlay = document.getElementById("modalOverlay");
+const modalTitle = document.getElementById("modalTitle");
+const modalTopics = document.getElementById("modalTopics");
+const modalFiles = document.getElementById("modalFiles");
+
+function openModal(dayNum) {
+  const data = scheduleData[dayNum];
+  const isQuiz = data.type === "large_quiz";
+
+  modalTitle.textContent = `Day ${dayNum} — ${data.title}`;
+  modalTopics.innerHTML = data.topics.map(t => `<li>${t}</li>`).join("");
+  modalFiles.innerHTML = data.files.map(f => {
+    const cls = isQuiz ? "quiz" : "study";
+    return `<a href="${f.url}" target="_blank" rel="noopener" class="file-bubble ${cls}">${f.name}</a>`;
+  }).join("");
+
+  overlay.classList.add("active");
+}
+
+function closeModal() {
+  overlay.classList.remove("active");
+}
+
+document.getElementById("modalClose").addEventListener("click", closeModal);
+overlay.addEventListener("click", (e) => {
+  if (e.target === overlay) closeModal();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeModal();
+});
+
+// Theme toggle
+const toggle = document.getElementById("themeToggle");
+function setTheme(dark) {
+  document.documentElement.setAttribute("data-theme", dark ? "dark" : "");
+  toggle.textContent = dark ? "🌙" : "☀️";
+  localStorage.setItem("theme", dark ? "dark" : "light");
+}
+
+toggle.addEventListener("click", () => {
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+  setTheme(!isDark);
+});
+
+// Init
+const saved = localStorage.getItem("theme");
+if (saved === "dark") setTheme(true);
+buildCalendar();
+</script>
+</body>
+</html>
